@@ -1,0 +1,58 @@
+try:
+    import errx
+    from errx import DisplayStyle
+    errx.bootstrap()
+    ERRX_AVAILABLE = True
+except ImportError:
+    ERRX_AVAILABLE = False
+
+
+from fastapi import FastAPI, Request, HTTPException
+from contextlib import asynccontextmanager
+from fastapi.middleware.cors import CORSMiddleware
+from loguru import logger
+from server.database.core import create_db_and_tables
+
+
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        await create_db_and_tables()
+        logger.info("Database and tables verified")
+        yield
+    except Exception as e:
+        logger.error(f"Error starting application: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+    finally:
+        logger.info("Application shutting down")
+
+
+
+app = FastAPI(
+    title="Auth Service",
+    description="Authentication service",
+    version="1.0.0",
+    lifespan=lifespan
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+        
+if ERRX_AVAILABLE:
+    errx.install(app)
+    logger.info("errx installed")
+
+
+
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
