@@ -5,7 +5,7 @@ from server.auth.models import AuthBase, User
 from sqlmodel import select
 from sqlalchemy.exc import IntegrityError
 
-from server.auth.security import get_password_hash, verify_password
+from server.auth.security import security
 from server.auth.token_access import token_access
 
 
@@ -32,7 +32,7 @@ class AuthService:
 
             user = User(
                 email_address=request.email_address,
-                password=get_password_hash(request.password),
+                password=security.get_password_hash(request.password),
             )
 
             self.session.add(user)
@@ -73,13 +73,14 @@ class AuthService:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="User not found",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+                headers={"WWW-Authenticate": "Bearer"},
+            )
 
-        if not verify_password(request.password, existing_user.password):
+        if not security.verify_password(request.password, existing_user.password):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Incorrect password"
+                detail="Incorrect password",
+                headers={"WWW-Authenticate": "Bearer"},
             )
 
         access_token = token_access.create_access_token(

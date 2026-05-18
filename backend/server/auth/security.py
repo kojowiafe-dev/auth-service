@@ -13,3 +13,6 @@ class Security:
             return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
         except ValueError:
             return False
+
+
+security = Security()
