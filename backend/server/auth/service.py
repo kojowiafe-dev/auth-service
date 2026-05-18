@@ -1,7 +1,13 @@
 from server.database.core import SessionDep
-from server.models.auth import User
-from fastapi import HTTPException, status, HTTPException
-from server.models.auth import AuthBase
+from fastapi import HTTPException, status
+from server.auth.models import AuthBase, User
+
+from sqlmodel import select
+from sqlalchemy.exc import IntegrityError
+
+from server.auth.security import get_password_hash, verify_password
+from server.auth.token_access import token_access
+
 
 
 class AuthService:
@@ -13,9 +19,8 @@ class AuthService:
         request: AuthBase
     ):
         try:
-            # check if user already exists
             result = await self.session.execute(
-                select(User).where(User.phone_number == request.phone_number)
+                select(User).where(User.email_address == request.email_address)
             )
             existing_user = result.scalars().first()
 
@@ -26,7 +31,7 @@ class AuthService:
                 )
 
             user = User(
-                phone_number=request.phone_number,
+                email_address=request.email_address,
                 password=get_password_hash(request.password),
             )
 
@@ -59,9 +64,8 @@ class AuthService:
         self,
         request: AuthBase,
     ):
-        # Find user by phone number
         existing_user = await self.session.execute(
-            select(User).where(User.phone_number == request.phone_number)
+            select(User).where(User.email_address == request.email_address)
         )
         existing_user = existing_user.scalars().first()
 
@@ -79,17 +83,10 @@ class AuthService:
             )
 
         access_token = token_access.create_access_token(
-            data={"sub": existing_user.phone_number, "role": existing_user.role}
+            data={"sub": existing_user.email_address}
         )
-
-        existing_user.last_seen = __import__("datetime").datetime.now(
-            __import__("datetime").timezone.utc
-        ).replace(tzinfo=None)
-        await self.session.commit()
-        await self.session.refresh(existing_user)
 
         return {
             "access_token": access_token,
             "token_type": "bearer",
-            "role": existing_user.role
         }
