@@ -1,6 +1,6 @@
 from server.database.core import SessionDep
 from fastapi import HTTPException, status
-from server.auth.models import AuthBase, User
+from server.auth.models import User
 
 from sqlmodel import select
 from sqlalchemy.exc import IntegrityError
@@ -16,7 +16,7 @@ class AuthService:
 
     async def register(
         self, 
-        request: AuthBase
+        request
     ):
         try:
             result = await self.session.execute(
@@ -62,7 +62,7 @@ class AuthService:
 
     async def login(
         self,
-        request: AuthBase,
+        request,
     ):
         existing_user = await self.session.execute(
             select(User).where(User.email_address == request.email_address)
