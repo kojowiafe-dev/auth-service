@@ -1,17 +1,16 @@
-try:
-    import errx
-    from errx import DisplayStyle
-    errx.bootstrap()
-    ERRX_AVAILABLE = True
-except ImportError:
-    ERRX_AVAILABLE = False
+import errx
+from errx import DisplayStyle
+errx.bootstrap()
+ERRX_AVAILABLE = True
 
 
 from fastapi import FastAPI, Request, HTTPException
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
+
 from server.database.core import create_db_and_tables
+from server.api import register_routes
 
 
 
@@ -44,15 +43,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
         
-if ERRX_AVAILABLE:
-    errx.install(app)
-    logger.info("errx installed")
-
-
+errx.install(app)
+logger.info("errx installed")
 
 
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+
+register_routes(app)

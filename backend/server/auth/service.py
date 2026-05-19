@@ -1,12 +1,12 @@
-from server.database.core import SessionDep
 from fastapi import HTTPException, status
-from server.auth.models import User
-
+from loguru import logger
 from sqlmodel import select
 from sqlalchemy.exc import IntegrityError
 
+from server.users.models import User
 from server.auth.security import security
 from server.auth.token_access import token_access
+from server.database.core import SessionDep
 
 
 
@@ -91,3 +91,6 @@ class AuthService:
             "access_token": access_token,
             "token_type": "bearer",
         }
+
+
+auth_service = AuthService(session=SessionDep)

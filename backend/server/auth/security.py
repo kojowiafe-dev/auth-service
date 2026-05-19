@@ -14,5 +14,4 @@ class Security:
         except ValueError:
             return False
 
-
 security = Security()

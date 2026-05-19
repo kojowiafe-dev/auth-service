@@ -1,21 +1,6 @@
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel
 from typing import Optional
-from datetime import datetime
-from enum import Enum
 from pydantic import ConfigDict
-
-
-class UserRole(str, Enum):
-    ADMIN = "admin"
-    USER = "user"
-
-
-class User(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    email_address: str = Field(index=True, unique=True)
-    password: str
-    created_at: datetime = Field(default=datetime.now())
-    updated_at: datetime = Field(default=datetime.now())
 
 
 class AuthBase(SQLModel):
