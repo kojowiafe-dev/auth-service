@@ -93,4 +93,5 @@ class AuthService:
         }
 
 
-auth_service = AuthService(session=SessionDep)
+
+auth_service = AuthService

@@ -3,7 +3,7 @@ from loguru import logger
 
 from server.users.models import UserResponse, PasswordChange
 from server.users.service import UserService
-from server.dependencies import get_current_user
+from server.dependencies import CurrentUser
 from server.database.core import SessionDep
 
 router = APIRouter(
@@ -28,14 +28,11 @@ async def get_all_users(
     response_model=UserResponse,
     status_code=status.HTTP_200_OK
 )
-async def get_current_user_route(
-    session: SessionDep
-):
-    user = await get_current_user(session)
+async def get_current_user_route(user: CurrentUser):
     logger.info(f"Getting current user: {user.email_address}")
     return {
         "id": user.id,
-        "email": user.email_address,
+        "email_address": user.email_address,
     }
 
 
@@ -46,8 +43,8 @@ async def get_current_user_route(
 async def change_password(
     password_change: PasswordChange,
     session: SessionDep,
+    user: CurrentUser,
 ):
-    user = await get_current_user(session)
     logger.info(f"Changing password for user: {user.email_address}")
     await UserService(session=session).change_password(
         user_id=user.id,
