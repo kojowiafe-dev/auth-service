@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from jose import JWTError
 from dotenv import load_dotenv
 import os
+from fastapi import HTTPException, status
 
 load_dotenv()
 
@@ -28,13 +29,13 @@ class TokenManager:
             if email_address is None:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Invalid authentication credentials",
+                    detail="Invalid token",
                 )
             return email_address
-        except JWTError:
+        except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid authentication credentials",
+                detail="Invalid token",
             )
 
 

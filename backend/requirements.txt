@@ -26,3 +26,4 @@ pytest-cov
 aiosqlite
 redis
 google-generativeai
+smtp
