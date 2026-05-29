@@ -1,7 +1,7 @@
-import errx
-from errx import DisplayStyle
-errx.bootstrap()
-ERRX_AVAILABLE = True
+# import errx
+# from errx import DisplayStyle
+# errx.bootstrap()
+# ERRX_AVAILABLE = True
 
 
 from fastapi import FastAPI, Request, HTTPException
@@ -44,8 +44,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
         
-errx.install(app)
-logger.info("errx installed")
+# errx.install(app)
+
 
 
 @app.get("/health")

@@ -29,7 +29,7 @@ class TokenManager:
             if email_address is None:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Invalid token",
+                    detail="Invalid credentials",
                 )
             return email_address
         except Exception as e:

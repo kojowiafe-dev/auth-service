@@ -16,5 +16,15 @@ class Settings:
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
     ERRX_VERBOSITY = os.getenv("ERRX_VERBOSITY")
 
+    
+    SMTP_SERVER = os.getenv("SMTP_SERVER")
+    SMTP_PORT = os.getenv("SMTP_PORT")
+    SMTP_USERNAME = os.getenv("SMTP_USERNAME")
+    SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
+    EMAIL_FROM = os.getenv("EMAIL_FROM")
+
+
+
+    
 
 settings = Settings()

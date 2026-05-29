@@ -18,8 +18,3 @@ class UserResponse(SQLModel):
     email_address: str
 
 
-
-class PasswordChange(SQLModel):
-    current_password: str
-    new_password: str
-    new_password_confirm: str

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, status
 from loguru import logger
 
-from server.users.models import UserResponse, PasswordChange
+from server.users.models import UserResponse
 from server.users.service import UserService
 from server.dependencies import CurrentUser
 from server.database.core import SessionDep
@@ -33,23 +33,4 @@ async def get_current_user_route(user: CurrentUser):
     return {
         "id": user.id,
         "email_address": user.email_address,
-    }
-
-
-@router.put(
-    "/change-password",
-    status_code=status.HTTP_200_OK
-)
-async def change_password(
-    password_change: PasswordChange,
-    session: SessionDep,
-    user: CurrentUser,
-):
-    logger.info(f"Changing password for user: {user.email_address}")
-    await UserService(session=session).change_password(
-        user_id=user.id,
-        password_change=password_change
-    )
-    return {
-        "message": "Password changed successfully",
     }

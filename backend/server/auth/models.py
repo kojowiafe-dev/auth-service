@@ -23,3 +23,15 @@ class Token(SQLModel):
     role: str
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class PasswordChange(SQLModel):
+    access_token: str
+    current_password: str
+    new_password: str
+    new_password_confirm: str
+
+
+class OtpRequest(SQLModel):
+    email_address: str
+    otp: str
