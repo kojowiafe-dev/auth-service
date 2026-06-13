@@ -1,7 +1,7 @@
-# import errx
-# from errx import DisplayStyle
-# errx.bootstrap()
-# ERRX_AVAILABLE = True
+import errx
+from errx import DisplayStyle
+errx.bootstrap()
+ERRX_AVAILABLE = True
 
 
 from fastapi import FastAPI, Request, HTTPException
@@ -18,6 +18,8 @@ from server.api import register_routes
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     try:
+        import server.users.models  # noqa: F401 — registers User, RefreshToken, OtpCode,
+        # LoginAudit, KnownDevice with SQLModel.metadata so create_all sees them.
         await create_db_and_tables()
         logger.info("Database and tables verified")
         yield
@@ -44,7 +46,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
         
-# errx.install(app)
+errx.install(app)
 
 
 
