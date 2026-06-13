@@ -24,6 +24,7 @@ loguru
 coverage
 pytest-cov
 aiosqlite
-redis
+redis[hiredis]
 google-generativeai
-smtp
+user-agents
+google-auth

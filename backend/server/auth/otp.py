@@ -1,63 +1,61 @@
+import hashlib
 import random
 import smtplib
-
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 from fastapi import status, HTTPException
-
-from fastapi.responses import JSONResponse
 from server.config import settings
 
 
-def get_otp() -> str:
+def generate_otp() -> tuple[str, str]:
     """
-    Generate a random 6 digit OTP.
+    Generate a 6-digit OTP.
+
+    Returns (raw_code, code_hash).
+    Only the raw code is emailed to the user; only the hash is stored in DB.
     """
-    return f"{random.randint(0, 999999):06d}"
+    raw = f"{random.randint(0, 999999):06d}"
+    code_hash = hashlib.sha256(raw.encode()).hexdigest()
+    return raw, code_hash
 
 
-def send_email(email_address: str, username: str):
+def send_otp_email(email_address: str, username: str, otp: str) -> None:
+    """
+    Send an OTP email. Raises HTTPException on failure.
+
+    The caller is responsible for generating the OTP and persisting its hash
+    before calling this function.
+    """
     try:
-        otp = get_otp()
-        print(f"Generated OTP: {otp}")
         msg = MIMEMultipart()
         msg["From"] = settings.EMAIL_FROM
         msg["To"] = email_address
-        msg["Subject"] = "OTP Verification"
-        body = f"Hello {username}, Your OTP is {otp}"
+        msg["Subject"] = "Your verification code"
+        body = (
+            f"Hi {username},\n\n"
+            f"Your one-time verification code is: {otp}\n\n"
+            f"This code expires in {settings.RESET_TOKEN_EXPIRE_MINUTES} minutes "
+            f"and can only be used once.\n\n"
+            f"If you didn't request this, please ignore this email."
+        )
         msg.attach(MIMEText(body, "plain"))
 
-        if settings.SMTP_SERVER and settings.SMTP_PORT:
-            with smtplib.SMTP(settings.SMTP_SERVER, int(settings.SMTP_PORT)) as s:
-                s.starttls()
-                s.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
-                s.send_message(msg)
-            print("Email successfully sent via SMTP.")
-            return JSONResponse(
-                status_code=status.HTTP_200_OK,
-                content={
-                    "message": "OTP sent successfully",
-                    "otp": otp
-                },
-            )
-        else:
-            print("Warning: SMTP is not configured in settings. Email was not sent.")
-            return JSONResponse(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                content={
-                    "message": "Email not sent"
-                },
+        if not (settings.SMTP_SERVER and settings.SMTP_PORT):
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Email service is not configured.",
             )
 
+        with smtplib.SMTP(settings.SMTP_SERVER, int(settings.SMTP_PORT)) as s:
+            s.starttls()
+            s.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
+            s.send_message(msg)
+
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to send OTP email: {e}",
         )
-
-
-# try:
-#     send_email("kojowiafe502@gmail.com", "Jeremiah Wiafe")
-# except Exception as e:
-#     print(e)

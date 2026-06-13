@@ -5,12 +5,12 @@ from pydantic import ConfigDict
 
 class AuthBase(SQLModel):
     email_address: str
-    password: str   
+    password: str
 
 
 class TokenData(SQLModel):
     email_address: Optional[str] = None
-    
+
     def get_email_address(self) -> str | None:
         if self.email_address:
             return self.email_address
@@ -18,11 +18,22 @@ class TokenData(SQLModel):
 
 
 class Token(SQLModel):
+    """Returned to the client on login or token refresh."""
     access_token: str
-    token_type: str
-    role: str
+    refresh_token: str
+    token_type: str = "bearer"
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class RefreshRequest(SQLModel):
+    """Body for POST /auth/refresh."""
+    refresh_token: str
+
+
+class LogoutRequest(SQLModel):
+    """Body for POST /auth/logout."""
+    refresh_token: str
 
 
 class PasswordChange(SQLModel):
