@@ -151,9 +151,10 @@ class AuthService:
                     f"{user.failed_attempts} failed attempts from {ip_address}"
                 )
 
+            user_id = user.id
             await self.session.commit()
             await self._write_audit(
-                user_id=user.id,
+                user_id=user_id,
                 ip_address=ip_address,
                 success=False,
                 failure_reason=failure_reason,
@@ -516,22 +517,24 @@ class AuthService:
             )
 
         # Success — burn the OTP immediately (single use)
+        email = user.email_address
+        user_id = user.id
         otp_record.is_used = True
         await self.session.commit()
 
         # Issue a token pair for the verified session
-        access_token = token_access.create_access_token(data={"sub": user.email_address})
+        access_token = token_access.create_access_token(data={"sub": email})
         raw_refresh, refresh_hash, rf_expires_at = token_access.create_refresh_token()
 
         refresh_record = RefreshToken(
             token_hash=refresh_hash,
-            user_id=user.id,
+            user_id=user_id,
             expires_at=rf_expires_at,
         )
         self.session.add(refresh_record)
         await self.session.commit()
 
-        logger.info(f"OTP verified for {user.email_address}")
+        logger.info(f"OTP verified for {email}")
         return {
             "access_token": access_token,
             "refresh_token": raw_refresh,
@@ -591,6 +594,7 @@ class AuthService:
         access_token = token_access.create_access_token(data={"sub": user.email_address})
         raw_refresh, refresh_hash, new_expires_at = token_access.create_refresh_token()
 
+        email = user.email_address
         new_record = RefreshToken(
             token_hash=refresh_hash,
             user_id=user.id,
@@ -600,7 +604,7 @@ class AuthService:
         self.session.add(new_record)
         await self.session.commit()
 
-        logger.info(f"Tokens rotated for user: {user.email_address}")
+        logger.info(f"Tokens rotated for user: {email}")
         return {
             "access_token": access_token,
             "refresh_token": raw_refresh,
@@ -616,9 +620,10 @@ class AuthService:
         record = result.scalars().first()
 
         if record and not record.is_revoked:
+            user_id = record.user_id
             record.is_revoked = True
             await self.session.commit()
-            logger.info(f"Refresh token revoked for user {record.user_id}")
+            logger.info(f"Refresh token revoked for user {user_id}")
 
         return {"message": "Logged out successfully"}
 
