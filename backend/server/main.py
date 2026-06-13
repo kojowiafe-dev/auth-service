@@ -20,6 +20,7 @@ async def lifespan(app: FastAPI):
     try:
         import server.users.models  # noqa: F401 — registers User, RefreshToken, OtpCode,
         # LoginAudit, KnownDevice with SQLModel.metadata so create_all sees them.
+        import server.wallet.models  # noqa: F401 — registers Wallet, Transaction, LedgerEntry, WalletAuditLog
         await create_db_and_tables()
         logger.info("Database and tables verified")
         yield
